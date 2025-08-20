@@ -1,0 +1,27 @@
+[keymap]
+"elite/cmd/ship/lights"        = "l"
+"elite/cmd/ship/gear"          = "g"
+"elite/cmd/ship/hardpoints"    = "u"
+"elite/cmd/ship/cargoscoop"    = ""
+"elite/cmd/ship/silentrunning" = ""
+"elite/cmd/ship/flightassist"  = ""
+"elite/cmd/ship/nightvision"   = ""
+"elite/cmd/ship/supercruise"   = ""
+"elite/cmd/ship/shields"       = ""
+
+"elite/cmd/srv/handbrake"      = ""
+"elite/cmd/srv/driveassist"    = ""
+"elite/cmd/srv/turret"         = ""
+"elite/cmd/srv/highbeam"       = ""
+"elite/cmd/srv/lights"         = ""
+
+"elite/cmd/mode/analysis"      = ""
+"elite/cmd/mode/cockpit"       = ""
+"elite/cmd/mode/fighter"       = ""
+"elite/cmd/mode/srv"           = ""
+"elite/cmd/mode/docked"        = ""
+"elite/cmd/mode/landed"        = ""
+
+"elite/cmd/alerts/overheating" = ""
+"elite/cmd/alerts/interdicted" = ""
+"elite/cmd/alerts/lowfuel"     = ""

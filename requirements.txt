@@ -1,0 +1,13 @@
+# Core
+paho-mqtt>=2.1
+watchdog>=4.0
+psutil>=5.9
+
+# GUI (tray)
+PySide6>=6.7
+
+# Config writing
+tomli-w>=1.0
+
+# Serial (present but optional at runtime)
+pyserial>=3.5

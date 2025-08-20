@@ -1,0 +1,36 @@
+[general]
+elite_dir = "C:/Users/[USERNAME]/Saved Games/Frontier Developments/Elite Dangerous"
+process_name = "EliteDangerous64.exe"
+poll_interval_ms = 500
+base_topic = "elite"
+auto_activate = true
+keymap_file = "keymap.example.toml"
+
+[outputs.mqtt]
+enabled = true
+broker = "0.0.0.0"
+port = 1883
+username = ""
+password = ""
+qos = 0
+retain = false
+
+[outputs.serial]
+enabled = false
+port = "COM6"
+baud = 115200
+newline_delimited_json = true
+
+[inputs.mqtt]
+enabled = true
+cmd_topic = "elite/cmd/#"
+
+[inputs.serial]
+enabled = false
+port = "COM6"
+baud = 115200
+
+[safety]
+require_foreground = true
+force_focus = false
+rate_limit_hz = 5

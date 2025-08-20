@@ -1,0 +1,5 @@
+ruff>=0.5
+mypy>=1.10
+types-psutil>=5.9.5.20240602
+pyinstaller>=6.8
+pip-licenses>=4.3
