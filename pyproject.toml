@@ -1,0 +1,18 @@
+[tool.black]
+line-length = 100
+target-version = ["py310", "py311", "py312"]
+exclude = "/(build|dist|\\.venv|\\.git)/"
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+lint.select = ["E", "F", "I", "B", "UP", "SIM"]
+lint.ignore = ["E203"]  # keep for Black compatibility
+exclude = ["build", "dist", ".venv", ".git"]
+
+[tool.pytest.ini_options]
+addopts = "-ra -q"
+testpaths = ["tests"]
+filterwarnings = [
+  "ignore: Callback API version 1 is deprecated, update to latest version"
+]

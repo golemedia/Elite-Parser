@@ -6,8 +6,13 @@ Minimal MQTT publisher + subscriber for Elite-Parser.
 - Subscribes to elite/cmd/# and forwards inbound messages to a handler
 """
 
-import json, queue, threading, time
-from typing import Optional, Callable
+import json
+import queue
+import threading
+import time
+from collections.abc import Callable
+from typing import Optional
+
 from utils.config import get
 
 try:
@@ -15,15 +20,15 @@ try:
 except Exception:
     mqtt = None
 
-CLIENT_ID  = "elite-parser"
-BROKER     = get("outputs.mqtt.broker")
-PORT       = get("outputs.mqtt.port")
+CLIENT_ID = "elite-parser"
+BROKER = get("outputs.mqtt.broker")
+PORT = get("outputs.mqtt.port")
 BASE_TOPIC = get("general.base_topic")
-QOS        = get("outputs.mqtt.qos", 0)
-RETAIN     = get("outputs.mqtt.retain", False)
-USERNAME   = get("outputs.mqtt.username", "")
-PASSWORD   = get("outputs.mqtt.password", "")
-CMD_TOPIC  = get("inputs.mqtt.cmd_topic", f"{BASE_TOPIC}/cmd/#")
+QOS = get("outputs.mqtt.qos", 0)
+RETAIN = get("outputs.mqtt.retain", False)
+USERNAME = get("outputs.mqtt.username", "")
+PASSWORD = get("outputs.mqtt.password", "")
+CMD_TOPIC = get("inputs.mqtt.cmd_topic", f"{BASE_TOPIC}/cmd/#")
 
 _client: Optional["mqtt.Client"] = None
 _outbox: "queue.Queue[tuple[str,str]]" = queue.Queue(maxsize=1000)
@@ -31,12 +36,14 @@ _connected = threading.Event()
 _stop = threading.Event()
 
 # --- Inbound command handling ---
-_command_handler: Optional[Callable[[str, object], None]] = None
+_command_handler: Callable[[str, object], None] | None = None
+
 
 def set_command_handler(fn: Callable[[str, object], None]):
     """Register a function(topic, payload) for inbound command messages."""
     global _command_handler
     _command_handler = fn
+
 
 def _on_connect(client, userdata, flags, reason_code, properties=None):
     if reason_code == 0:
@@ -53,9 +60,11 @@ def _on_connect(client, userdata, flags, reason_code, properties=None):
     else:
         print(f"[MQTT] Connect failed: {reason_code}")
 
+
 def _on_disconnect(client, userdata, reason_code, properties=None):
     _connected.clear()
     print(f"[MQTT] Disconnected: {reason_code}")
+
 
 def _on_message(client, userdata, msg):
     payload_raw = msg.payload.decode("utf-8", errors="ignore").strip()
@@ -73,6 +82,7 @@ def _on_message(client, userdata, msg):
             print(f"[MQTT] Command handler error: {e}")
     else:
         print(f"[MQTT] CMD {msg.topic} :: {payload}")
+
 
 def _publisher_thread():
     while not _stop.is_set():
@@ -97,6 +107,7 @@ def _publisher_thread():
 
     print("[MQTT] Publisher thread exit")
 
+
 def start():
     """Start MQTT client and background publisher thread (idempotent)."""
     global _client
@@ -119,6 +130,7 @@ def start():
 
     threading.Thread(target=_publisher_thread, name="mqtt-pub", daemon=True).start()
 
+
 def stop():
     _stop.set()
     try:
@@ -127,6 +139,7 @@ def stop():
             _client.disconnect()
     except Exception:
         pass
+
 
 def publish_packet(packet: dict):
     """Queue a packet for publish to elite/events/<type> as JSON."""

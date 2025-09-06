@@ -1,40 +1,44 @@
+import os
 import threading
 import time
-from watchdog.observers import Observer
-from watchdog.events import FileSystemEventHandler
-import sys,os
 
-from status import process_status_file
+from watchdog.events import FileSystemEventHandler
+from watchdog.observers import Observer
+
 from journal import process_journal_file
 from modules import process_modules_file
-from shipcomms import handle_receive_text
-from utils.mqtt_output import start as mqtt_start, set_command_handler
-from utils.config import load_config, get 
-from utils.keymap import load_keymap
-
+from status import process_status_file
 from utils.command_router import handle_inbound_command
+from utils.config import get, load_config
+from utils.keymap import load_keymap
+from utils.mqtt_output import set_command_handler
+from utils.mqtt_output import start as mqtt_start
 
-# === Paths ===
-ELITE_DIR = get("general.elite_dir")
-WATCH_DIR = ELITE_DIR
 
-if not os.path.isdir(WATCH_DIR):
-    print(f"[EDPIT] ERROR: 'general.elite_dir' does not exist:\n  {WATCH_DIR}")
-    print("        Fix this in config.toml, then rerun.")
-    sys.exit(1)
+def _load_runtime_config(path: str = "config.toml"):
+    """Load configuration and validate required paths. Raise on problems."""
+    # Ensure config is loaded before using `get(...)`
+    load_config(path)
+    elite_dir = get("general.elite_dir")
+    if not os.path.isdir(elite_dir):
+        msg = (
+            "[ELITEPARSER] ERROR: 'general.elite_dir' does not exist:\n"
+            f"  {elite_dir}\n"
+            "        Fix this in config.toml, then rerun."
+        )
+        raise RuntimeError(msg)
+    return elite_dir
+
 
 TARGET_FILES = {
     "Status.json": process_status_file,
     "ModulesInfo.json": process_modules_file,
 }
 
+
 def _log_command(topic: str, payload):
     print(f"[CMD] {topic} -> {payload}")
 
-load_config("config.toml")
-load_keymap(force=True)
-mqtt_start()
-set_command_handler(handle_inbound_command)
 
 # === Journal needs a timer/loop because of dynamic filenames ===
 def journal_loop():
@@ -42,6 +46,7 @@ def journal_loop():
     while True:
         process_journal_file()
         time.sleep(interval)
+
 
 # === Watchdog Handler ===
 class EDFileHandler(FileSystemEventHandler):
@@ -51,9 +56,21 @@ class EDFileHandler(FileSystemEventHandler):
             if filename in TARGET_FILES:
                 TARGET_FILES[filename]()
 
+
 # === Launch ===
-def main():
-    print("[EDPIT] Starting telemetry monitor...")
+def main(argv=None) -> int:
+    print("[ELITEPARSER] Starting telemetry monitor...")
+
+    try:
+        watch_dir = _load_runtime_config("config.toml")
+    except RuntimeError as e:
+        print(e)
+        return 1
+
+    # Now that config is validated, do runtime setup
+    load_keymap(force=True)
+    mqtt_start()
+    set_command_handler(handle_inbound_command)
 
     # Start journal file polling thread
     journal_thread = threading.Thread(target=journal_loop, daemon=True)
@@ -62,7 +79,7 @@ def main():
     # Start watchdog for status and modules
     event_handler = EDFileHandler()
     observer = Observer()
-    observer.schedule(event_handler, WATCH_DIR, recursive=False)
+    observer.schedule(event_handler, watch_dir, recursive=False)
     observer.start()
 
     try:
@@ -72,6 +89,8 @@ def main():
         observer.stop()
 
     observer.join()
+    return 0
+
 
 if __name__ == "__main__":
     main()

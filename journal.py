@@ -1,17 +1,33 @@
 import json
 import os
-from utils.serial_output import format_packet, send_to_serial
+
 from loadout import process_loadout_event
-from utils.mqtt_output import publish_packet, start as mqtt_start
 from utils.config import get
+from utils.mqtt_output import publish_packet
+from utils.mqtt_output import start as mqtt_start
+from utils.serial_output import format_packet, send_to_serial
 
 mqtt_start()
 
 WATCHED_EVENTS = {
-    "Fileheader", "LoadGame", "Shutdown", "Location", "StartJump", "FSDJump",
-    "SupercruiseEntry", "SupercruiseExit", "Docked", "Undocked", "ApproachBody",
-    "Touchdown", "Liftoff", "HullDamage", "HeatWarning", "ShieldState", "FuelScoop",
-    "ReceiveText"  # handled by shipcomms.py but included in watch filter
+    "Fileheader",
+    "LoadGame",
+    "Shutdown",
+    "Location",
+    "StartJump",
+    "FSDJump",
+    "SupercruiseEntry",
+    "SupercruiseExit",
+    "Docked",
+    "Undocked",
+    "ApproachBody",
+    "Touchdown",
+    "Liftoff",
+    "HullDamage",
+    "HeatWarning",
+    "ShieldState",
+    "FuelScoop",
+    "ReceiveText",  # handled by shipcomms.py but included in watch filter
 }
 
 ELITE_DIR = os.path.normpath(get("general.elite_dir"))
@@ -21,9 +37,12 @@ JOURNAL_DIR = ELITE_DIR
 _last_journal_file = None
 _last_position = 0
 
+
 def get_latest_journal_file():
     try:
-        files = [f for f in os.listdir(JOURNAL_DIR) if f.startswith("Journal") and f.endswith(".log")]
+        files = [
+            f for f in os.listdir(JOURNAL_DIR) if f.startswith("Journal") and f.endswith(".log")
+        ]
     except OSError as e:
         print(f"[JOURNAL] Cannot list dir '{JOURNAL_DIR}': {e}")
         return None
@@ -31,6 +50,7 @@ def get_latest_journal_file():
         return None
     files.sort(reverse=True)
     return os.path.join(JOURNAL_DIR, files[0])
+
 
 def process_journal_file():
     global _last_journal_file, _last_position
@@ -45,7 +65,7 @@ def process_journal_file():
         _last_position = 0
 
     try:
-        with open(journal_file, "r", encoding="utf-8") as f:
+        with open(journal_file, encoding="utf-8") as f:
             f.seek(_last_position)
             lines = f.readlines()
             _last_position = f.tell()
