@@ -6,8 +6,8 @@ exclude = "/(build|dist|\\.venv|\\.git)/"
 [tool.ruff]
 line-length = 100
 target-version = "py310"
-select = ["E", "F", "I", "B", "UP", "SIM"]
-ignore = ["E203"]  # keep for Black compatibility
+lint.select = ["E", "F", "I", "B", "UP", "SIM"]
+lint.ignore = ["E203"]  # keep for Black compatibility
 exclude = ["build", "dist", ".venv", ".git"]
 
 [tool.pytest.ini_options]
