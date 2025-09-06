@@ -1,5 +1,3 @@
-import json
-
 def handle_receive_text(event):
     try:
         channel = event.get("Channel", "Unknown")

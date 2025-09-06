@@ -1,18 +1,19 @@
+import os
+import sys
 import threading
 import time
-from watchdog.observers import Observer
-from watchdog.events import FileSystemEventHandler
-import sys,os
 
-from status import process_status_file
+from watchdog.events import FileSystemEventHandler
+from watchdog.observers import Observer
+
 from journal import process_journal_file
 from modules import process_modules_file
-from shipcomms import handle_receive_text
-from utils.mqtt_output import start as mqtt_start, set_command_handler
-from utils.config import load_config, get 
-from utils.keymap import load_keymap
-
+from status import process_status_file
 from utils.command_router import handle_inbound_command
+from utils.config import get, load_config
+from utils.keymap import load_keymap
+from utils.mqtt_output import set_command_handler
+from utils.mqtt_output import start as mqtt_start
 
 # === Paths ===
 ELITE_DIR = get("general.elite_dir")
@@ -28,13 +29,16 @@ TARGET_FILES = {
     "ModulesInfo.json": process_modules_file,
 }
 
+
 def _log_command(topic: str, payload):
     print(f"[CMD] {topic} -> {payload}")
+
 
 load_config("config.toml")
 load_keymap(force=True)
 mqtt_start()
 set_command_handler(handle_inbound_command)
+
 
 # === Journal needs a timer/loop because of dynamic filenames ===
 def journal_loop():
@@ -43,6 +47,7 @@ def journal_loop():
         process_journal_file()
         time.sleep(interval)
 
+
 # === Watchdog Handler ===
 class EDFileHandler(FileSystemEventHandler):
     def on_modified(self, event):
@@ -50,6 +55,7 @@ class EDFileHandler(FileSystemEventHandler):
             filename = os.path.basename(event.src_path)
             if filename in TARGET_FILES:
                 TARGET_FILES[filename]()
+
 
 # === Launch ===
 def main():
@@ -72,6 +78,7 @@ def main():
         observer.stop()
 
     observer.join()
+
 
 if __name__ == "__main__":
     main()

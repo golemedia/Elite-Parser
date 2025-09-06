@@ -4,24 +4,23 @@
 # Run: python tray_app.py
 
 from __future__ import annotations
-import os
-import sys
+
+# from multiprocessing import context
 import subprocess
-import signal
+import sys
 import time
 from pathlib import Path
-from typing import Optional
-import psutil
 
+import psutil
 from PySide6 import QtCore, QtGui, QtWidgets
 
 # Project-local config helpers
 try:
-    from utils.config import load_config, reload_config, get
+    from utils.config import get, load_config, reload_config
 except Exception:
     # Allow running tray from other working dirs
     sys.path.append(str(Path(__file__).parent))
-    from utils.config import load_config, reload_config, get  # type: ignore
+    from utils.config import get, load_config, reload_config  # type: ignore
 
 # Optional dependency for saving TOML nicely
 try:
@@ -33,12 +32,13 @@ APP_NAME = "Elite-Parser Tray"
 REPO_ROOT = Path(__file__).resolve().parent
 CONFIG_PATH = REPO_ROOT / "config.toml"
 
+
 class ParserProcess(QtCore.QObject):
     state_changed = QtCore.Signal(bool)  # running?
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self._proc: Optional[subprocess.Popen] = None
+        self._proc: subprocess.Popen | None = None
         self._last_start = 0.0
 
     def start(self):
@@ -60,27 +60,20 @@ class ParserProcess(QtCore.QObject):
             self.state_changed.emit(False)
 
     def stop(self):
-        if not self.is_running():
-            return
-        try:
-            if os.name == "nt":
+        # Gracefully stop background process; ignore benign errors (already dead, etc.)
+        if self._proc:
+            import contextlib
+
+            with contextlib.suppress(Exception):
                 self._proc.terminate()
-            else:
-                self._proc.terminate()
-            self._proc.wait(timeout=3)
-        except Exception:
-            try:
-                self._proc.kill()
-            except Exception:
-                pass
-        
+                self._proc.wait(timeout=2)
+
         self._proc = None
         self.state_changed.emit(False)
 
     def is_running(self) -> bool:
         return self._proc is not None and (self._proc.poll() is None)
 
-    
 
 class SettingsDialog(QtWidgets.QDialog):
     def __init__(self, parent=None):
@@ -89,7 +82,7 @@ class SettingsDialog(QtWidgets.QDialog):
         self.setMinimumWidth(420)
 
         # Load current config
-        cfg = load_config(str(CONFIG_PATH))
+        #        cfg = load_config(str(CONFIG_PATH))
 
         # Widgets
         self.broker = QtWidgets.QLineEdit(str(get("outputs.mqtt.broker", "127.0.0.1")))
@@ -98,7 +91,9 @@ class SettingsDialog(QtWidgets.QDialog):
         self.port.setValue(int(get("outputs.mqtt.port", 1883)))
 
         self.base_topic = QtWidgets.QLineEdit(str(get("general.base_topic", "elite")))
-        self.cmd_topic = QtWidgets.QLineEdit(str(get("inputs.mqtt.cmd_topic", f"{self.base_topic.text()}/cmd/#")))
+        self.cmd_topic = QtWidgets.QLineEdit(
+            str(get("inputs.mqtt.cmd_topic", f"{self.base_topic.text()}/cmd/#"))
+        )
 
         self.elite_dir = QtWidgets.QLineEdit(str(get("general.elite_dir", "")))
         self.require_fg = QtWidgets.QCheckBox("Require Elite foreground for commands (strict)")
@@ -134,7 +129,11 @@ class SettingsDialog(QtWidgets.QDialog):
     def _on_save(self):
         # Reload, mutate fields, write back
         if tomli_w is None:
-            QtWidgets.QMessageBox.warning(self, APP_NAME, "Saving requires 'tomli-w' (pip install tomli-w).\nSettings not saved.")
+            QtWidgets.QMessageBox.warning(
+                self,
+                APP_NAME,
+                "Saving requires 'tomli-w' (pip install tomli-w).\n" "Settings not saved.",
+            )
             return
         cfg = load_config(str(CONFIG_PATH))
         # mutate
@@ -160,6 +159,7 @@ class SettingsDialog(QtWidgets.QDialog):
         except Exception as e:
             QtWidgets.QMessageBox.critical(self, APP_NAME, f"Failed to save config:\n{e}")
 
+
 class TrayApp(QtWidgets.QSystemTrayIcon):
     def __init__(self):
         super().__init__()
@@ -181,7 +181,9 @@ class TrayApp(QtWidgets.QSystemTrayIcon):
         self.action_start.triggered.connect(self.proc.start)
         self.action_stop.triggered.connect(self.proc.stop)
         self.action_settings.triggered.connect(self.open_settings)
-        self.action_open_cfg.triggered.connect(lambda: QtGui.QDesktopServices.openUrl(QtCore.QUrl.fromLocalFile(str(REPO_ROOT))))
+        self.action_open_cfg.triggered.connect(
+            lambda: QtGui.QDesktopServices.openUrl(QtCore.QUrl.fromLocalFile(str(REPO_ROOT)))
+        )
         self.action_quit.triggered.connect(self._quit)
 
         # Status timer to update icon + optional log tail
@@ -224,7 +226,6 @@ class TrayApp(QtWidgets.QSystemTrayIcon):
 
         # keep icon in sync regardless
         self._set_icon_running(self.proc.is_running())
-        
 
     def open_settings(self):
         was_running = self.proc.is_running()
@@ -252,11 +253,13 @@ class TrayApp(QtWidgets.QSystemTrayIcon):
                 continue
         return False
 
+
 def main():
     app = QtWidgets.QApplication(sys.argv)
     app.setQuitOnLastWindowClosed(False)
-    tray = TrayApp()
+    #    tray = TrayApp()
     sys.exit(app.exec())
+
 
 if __name__ == "__main__":
     main()

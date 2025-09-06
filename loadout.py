@@ -1,9 +1,11 @@
-import json
 import os
-#from edpit import ELITE_DIR
-from utils.serial_output import format_packet, send_to_serial
-from utils.mqtt_output import publish_packet, start as mqtt_start
+
 from utils.config import get
+from utils.mqtt_output import publish_packet
+from utils.mqtt_output import start as mqtt_start
+
+# from edpit import ELITE_DIR
+from utils.serial_output import format_packet, send_to_serial
 
 mqtt_start()
 
@@ -11,6 +13,7 @@ ELITE_DIR = os.path.normpath(get("general.elite_dir"))
 LOADOUT_FILE = os.path.join(ELITE_DIR, "JournalLoadoutCache.json")
 
 _last_payload = None
+
 
 def extract_module_summary(mod):
     summary = {
@@ -31,9 +34,10 @@ def extract_module_summary(mod):
             "Blueprint": eng.get("BlueprintName"),
             "Level": eng.get("Level"),
             "Quality": eng.get("Quality"),
-            "ExperimentalEffect": eng.get("ExperimentalEffect", None)
+            "ExperimentalEffect": eng.get("ExperimentalEffect", None),
         }
     return summary
+
 
 def process_loadout_event(event):
     global _last_payload
@@ -49,7 +53,7 @@ def process_loadout_event(event):
         "MaxJumpRange": event.get("MaxJumpRange"),
         "Rebuy": event.get("Rebuy"),
         "CargoCapacity": event.get("CargoCapacity"),
-        "Modules": [extract_module_summary(mod) for mod in event.get("Modules", [])]
+        "Modules": [extract_module_summary(mod) for mod in event.get("Modules", [])],
     }
 
     if data != _last_payload:
@@ -60,4 +64,3 @@ def process_loadout_event(event):
         publish_packet(packet)
     else:
         print("[LOADOUT] No change.")
-

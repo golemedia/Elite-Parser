@@ -1,8 +1,10 @@
 # utils/win_focus.py
 # SPDX-License-Identifier: MIT
 from __future__ import annotations
+
 import ctypes
 import ctypes.wintypes as wt
+
 import psutil
 
 user32 = ctypes.WinDLL("user32", use_last_error=True)
@@ -10,10 +12,12 @@ GetForegroundWindow = user32.GetForegroundWindow
 GetWindowThreadProcessId = user32.GetWindowThreadProcessId
 SetForegroundWindow = user32.SetForegroundWindow
 
+
 def _pid_of_hwnd(hwnd: int) -> int | None:
     pid = wt.DWORD()
     GetWindowThreadProcessId(wt.HWND(hwnd), ctypes.byref(pid))
     return pid.value or None
+
 
 def is_process_foreground(process_name: str) -> bool:
     """Return True if the foreground window belongs to process_name."""
@@ -29,6 +33,7 @@ def is_process_foreground(process_name: str) -> bool:
     except psutil.Error:
         return False
 
+
 def try_focus_process(process_name: str) -> bool:
     """
     Best-effort: find a top-level window for process_name and bring it to front.
@@ -38,13 +43,9 @@ def try_focus_process(process_name: str) -> bool:
     for p in psutil.process_iter(["name", "pid"]):
         if p.info.get("name", "").lower() == process_name.lower():
             try:
-                # Use foreground check path (foreground may already be Elite)
-                if is_process_foreground(process_name):
-                    return True
-                # Fallback: attach input & toggle Alt press trick is noisy—skip for now.
-                # We keep it conservative; bringing to front reliably requires more plumbing.
-                # Return False to avoid surprising focus changes.
-                return False
+                # Return focus status directly; conservative: do not force focus
+                return is_process_foreground(process_name)
             except psutil.Error:
-                continue
+                continue  # keep if this is inside a loop; otherwise, use `return False`
+
     return False

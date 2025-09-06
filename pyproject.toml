@@ -13,3 +13,6 @@ exclude = ["build", "dist", ".venv", ".git"]
 [tool.pytest.ini_options]
 addopts = "-ra -q"
 testpaths = ["tests"]
+filterwarnings = [
+  "ignore: Callback API version 1 is deprecated, update to latest version"
+]

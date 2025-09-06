@@ -1,17 +1,20 @@
 # utils/command_router.py
 # SPDX-License-Identifier: MIT
 from __future__ import annotations
+
 import time
-from typing import Any, Dict
+from typing import Any
+
 from utils.config import get
-from utils.keymap import resolve as resolve_key
-from utils.win_focus import is_process_foreground
-from utils.keys_win import press_key
 from utils.keymap import load_keymap
+from utils.keymap import resolve as resolve_key
+from utils.keys_win import press_key
+from utils.win_focus import is_process_foreground
 
 keymap = load_keymap()
 
-_last_ts: Dict[str, float] = {}
+_last_ts: dict[str, float] = {}
+
 
 def _within_rate(topic: str, hz: float) -> bool:
     if hz <= 0:
@@ -23,6 +26,7 @@ def _within_rate(topic: str, hz: float) -> bool:
         return False
     _last_ts[topic] = now
     return True
+
 
 def handle_inbound_command(topic: str, payload: Any) -> None:
     key = resolve_key(topic)

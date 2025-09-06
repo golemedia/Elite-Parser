@@ -1,8 +1,10 @@
 # utils/config.py
 # SPDX-License-Identifier: MIT
 from __future__ import annotations
-import os, pathlib, sys
-from typing import Any, Dict
+
+import os
+import pathlib
+from typing import Any
 
 # Python 3.11+ has tomllib in stdlib; fallback to tomli if needed
 try:
@@ -10,7 +12,7 @@ try:
 except ModuleNotFoundError:  # pragma: no cover
     import tomli as tomllib  # type: ignore
 
-DEFAULTS: Dict[str, Any] = {
+DEFAULTS: dict[str, Any] = {
     "general": {
         "elite_dir": r"C:\Users\Public\Saved Games\Frontier Developments\Elite Dangerous",
         "only_when_game_running": True,
@@ -49,9 +51,10 @@ DEFAULTS: Dict[str, Any] = {
     "keymap": {},
 }
 
-_cfg: Dict[str, Any] | None = None
+_cfg: dict[str, Any] | None = None
 
-def _deep_merge(dst: Dict[str, Any], src: Dict[str, Any]) -> Dict[str, Any]:
+
+def _deep_merge(dst: dict[str, Any], src: dict[str, Any]) -> dict[str, Any]:
     for k, v in src.items():
         if isinstance(v, dict) and isinstance(dst.get(k), dict):
             _deep_merge(dst[k], v)  # type: ignore
@@ -59,7 +62,8 @@ def _deep_merge(dst: Dict[str, Any], src: Dict[str, Any]) -> Dict[str, Any]:
             dst[k] = v
     return dst
 
-def load_config(path: str | os.PathLike = "config.toml") -> Dict[str, Any]:
+
+def load_config(path: str | os.PathLike = "config.toml") -> dict[str, Any]:
     """Load TOML config and merge with defaults. Idempotent."""
     global _cfg
     if _cfg is not None:
@@ -71,10 +75,10 @@ def load_config(path: str | os.PathLike = "config.toml") -> Dict[str, Any]:
     if p.exists():
         data = p.read_bytes()
         # Strip UTF-8 BOM if present
-        if data.startswith(b'\xef\xbb\xbf'):
+        if data.startswith(b"\xef\xbb\xbf"):
             data = data[3:]
         try:
-            file_cfg = tomllib.loads(data.decode('utf-8'))
+            file_cfg = tomllib.loads(data.decode("utf-8"))
         except Exception as e:
             # Helpful diagnostics: show first bytes
             preview = data[:40]
@@ -82,14 +86,14 @@ def load_config(path: str | os.PathLike = "config.toml") -> Dict[str, Any]:
                 f"TOML parse failed for {p}.\n"
                 f"Tip: ensure UTF-8 (no BOM). First bytes: {preview!r}\n"
                 f"Original error: {e}"
-            )
+            ) from e
         _deep_merge(cfg, file_cfg)
 
     # ENV overrides (useful for secrets/CI)
     # ELITE_MQTT_HOST, ELITE_MQTT_PORT, ELITE_MQTT_USER, ELITE_MQTT_PASS, ELITE_BASE_TOPIC
     mqtt_out = cfg["outputs"]["mqtt"]
-    mqtt_out["broker"]   = os.getenv("ELITE_MQTT_HOST", mqtt_out["broker"])
-    mqtt_out["port"]     = int(os.getenv("ELITE_MQTT_PORT", mqtt_out["port"]))
+    mqtt_out["broker"] = os.getenv("ELITE_MQTT_HOST", mqtt_out["broker"])
+    mqtt_out["port"] = int(os.getenv("ELITE_MQTT_PORT", mqtt_out["port"]))
     mqtt_out["username"] = os.getenv("ELITE_MQTT_USER", mqtt_out["username"])
     mqtt_out["password"] = os.getenv("ELITE_MQTT_PASS", mqtt_out["password"])
 
@@ -97,6 +101,7 @@ def load_config(path: str | os.PathLike = "config.toml") -> Dict[str, Any]:
 
     _cfg = cfg
     return cfg
+
 
 def get(path: str, default: Any = None) -> Any:
     """
@@ -110,7 +115,8 @@ def get(path: str, default: Any = None) -> Any:
         node = node.get(part, default)
     return node
 
-def reload_config(path: str | os.PathLike = "config.toml") -> Dict[str, Any]:
+
+def reload_config(path: str | os.PathLike = "config.toml") -> dict[str, Any]:
     """Clear cache and reload (for future GUI hot-reload)."""
     global _cfg
     _cfg = None
