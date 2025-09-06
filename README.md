@@ -1,6 +1,16 @@
-# Elite-Parser
-![CI](https://github.com/golemedia/Elite-Parser/actions/workflows/ci.yml/badge.svg)
+<!-- CI on main -->
+![CI](https://github.com/golemedia/Elite-Parser/actions/workflows/ci.yml/badge.svg?branch=main)
+<!-- License (reads your LICENSE file) -->
+[![License](https://img.shields.io/github/license/golemedia/Elite-Parser)](LICENSE)
+<!-- Python versions you test in CI (static) -->
+![Python](https://img.shields.io/badge/python-3.10%20|%203.11%20|%203.12-blue?logo=python)
+<!-- Code style + linter you actually use -->
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+![Linter: ruff](https://img.shields.io/badge/linter-ruff-46a?logo=python)
+<!-- Platform reality -->
+![Platform](https://img.shields.io/badge/platform-Windows-0078D6?logo=windows)
 
+# Elite-Parser
 
 ### *Real-time Telemetry + Control for Elite Dangerous (MQTT + Tray App, Python)*
 
