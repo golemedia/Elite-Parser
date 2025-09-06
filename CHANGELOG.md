@@ -29,6 +29,3 @@ All notable changes to this project will be documented here.
 \- Lint errors (Ruff): exception chaining, boolean returns, indentation/syntax issues.
 
 \- Formatting via Black across repo.
-
-
-
