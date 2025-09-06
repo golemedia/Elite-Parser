@@ -45,7 +45,5 @@ python tray_app.py
 ### **Where this goes next -** 
 
 - Integrate **Home Assistant** and an embedded MQTT broker.
-
 - Expand GUI config; harden PBKAC by default (safe focus checks).
-
 - Tie into my **GLaDOS** assistant for voice commands and status callouts. (Yes, with attitude.) [](https://www.golemedia.net/blog/2025/08/elite-parser/)
