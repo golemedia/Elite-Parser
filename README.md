@@ -1,4 +1,6 @@
 # Elite-Parser
+![CI](https://github.com/golemedia/Elite-Parser/actions/workflows/ci.yml/badge.svg)
+
 
 ### *Real-time Telemetry + Control for Elite Dangerous (MQTT + Tray App, Python)*
 
