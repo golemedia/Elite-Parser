@@ -19,7 +19,7 @@ ELITE_DIR = get("general.elite_dir")
 WATCH_DIR = ELITE_DIR
 
 if not os.path.isdir(WATCH_DIR):
-    print(f"[EDPIT] ERROR: 'general.elite_dir' does not exist:\n  {WATCH_DIR}")
+    print(f"[ELITEPARSER] ERROR: 'general.elite_dir' does not exist:\n  {WATCH_DIR}")
     print("        Fix this in config.toml, then rerun.")
     sys.exit(1)
 
@@ -53,7 +53,7 @@ class EDFileHandler(FileSystemEventHandler):
 
 # === Launch ===
 def main():
-    print("[EDPIT] Starting telemetry monitor...")
+    print("[ELITEPARSER] Starting telemetry monitor...")
 
     # Start journal file polling thread
     journal_thread = threading.Thread(target=journal_loop, daemon=True)

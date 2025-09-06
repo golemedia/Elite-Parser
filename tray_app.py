@@ -48,8 +48,8 @@ class ParserProcess(QtCore.QObject):
         if not CONFIG_PATH.exists():
             QtWidgets.QMessageBox.critical(None, APP_NAME, f"Missing config.toml at\n{CONFIG_PATH}")
             return
-        # Launch edpit.py in unbuffered mode so logs stream
-        cmd = [sys.executable, "-u", str(REPO_ROOT / "edpit.py")]
+        # Launch eliteparser.py in unbuffered mode so logs stream
+        cmd = [sys.executable, "-u", str(REPO_ROOT / "eliteparser.py")]
         try:
             self._proc = subprocess.Popen(cmd, cwd=str(REPO_ROOT))
             self._last_start = time.time()
