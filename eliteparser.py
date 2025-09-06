@@ -14,6 +14,7 @@ from utils.keymap import load_keymap
 from utils.mqtt_output import set_command_handler
 from utils.mqtt_output import start as mqtt_start
 
+__version__ = "0.1.0"
 
 def _load_runtime_config(path: str = "config.toml"):
     """Load configuration and validate required paths. Raise on problems."""
