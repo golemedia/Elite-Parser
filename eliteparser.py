@@ -1,5 +1,4 @@
 import os
-import sys
 import threading
 import time
 
@@ -15,14 +14,21 @@ from utils.keymap import load_keymap
 from utils.mqtt_output import set_command_handler
 from utils.mqtt_output import start as mqtt_start
 
-# === Paths ===
-ELITE_DIR = get("general.elite_dir")
-WATCH_DIR = ELITE_DIR
 
-if not os.path.isdir(WATCH_DIR):
-    print(f"[ELITEPARSER] ERROR: 'general.elite_dir' does not exist:\n  {WATCH_DIR}")
-    print("        Fix this in config.toml, then rerun.")
-    sys.exit(1)
+def _load_runtime_config(path: str = "config.toml"):
+    """Load configuration and validate required paths. Raise on problems."""
+    # Ensure config is loaded before using `get(...)`
+    load_config(path)
+    elite_dir = get("general.elite_dir")
+    if not os.path.isdir(elite_dir):
+        msg = (
+            "[ELITEPARSER] ERROR: 'general.elite_dir' does not exist:\n"
+            f"  {elite_dir}\n"
+            "        Fix this in config.toml, then rerun."
+        )
+        raise RuntimeError(msg)
+    return elite_dir
+
 
 TARGET_FILES = {
     "Status.json": process_status_file,
@@ -32,12 +38,6 @@ TARGET_FILES = {
 
 def _log_command(topic: str, payload):
     print(f"[CMD] {topic} -> {payload}")
-
-
-load_config("config.toml")
-load_keymap(force=True)
-mqtt_start()
-set_command_handler(handle_inbound_command)
 
 
 # === Journal needs a timer/loop because of dynamic filenames ===
@@ -58,8 +58,19 @@ class EDFileHandler(FileSystemEventHandler):
 
 
 # === Launch ===
-def main():
+def main(argv=None) -> int:
     print("[ELITEPARSER] Starting telemetry monitor...")
+
+    try:
+        watch_dir = _load_runtime_config("config.toml")
+    except RuntimeError as e:
+        print(e)
+        return 1
+
+    # Now that config is validated, do runtime setup
+    load_keymap(force=True)
+    mqtt_start()
+    set_command_handler(handle_inbound_command)
 
     # Start journal file polling thread
     journal_thread = threading.Thread(target=journal_loop, daemon=True)
@@ -68,7 +79,7 @@ def main():
     # Start watchdog for status and modules
     event_handler = EDFileHandler()
     observer = Observer()
-    observer.schedule(event_handler, WATCH_DIR, recursive=False)
+    observer.schedule(event_handler, watch_dir, recursive=False)
     observer.start()
 
     try:
@@ -78,6 +89,7 @@ def main():
         observer.stop()
 
     observer.join()
+    return 0
 
 
 if __name__ == "__main__":
